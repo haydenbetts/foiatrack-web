@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg: #0B0C10;
+  --bg-soft: #0F1117;
+  --bg-card: #11131A;
+  --ring: #5B8CFF;
+  --text: #E6E8EF;
+  --text-soft: #B7BCCD;
+  --text-muted: #8C93A7;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@layer base {
+  * { @apply antialiased; }
+  a { @apply underline-offset-2 hover:underline; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto max-w-6xl px-4; }
+  .card { @apply bg-[var(--bg-card)] rounded-2xl shadow-card border border-white/5; }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl text-sm font-medium px-4 py-2 transition;
+  }
+  .btn-primary { @apply bg-brand text-white hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]; }
+  .btn-ghost { @apply bg-white/5 hover:bg-white/10; }
+  .input {
+    @apply w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-[var(--ring)];
+  }
+  .textarea { @apply input min-h-[9rem]; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-xs text-text-soft; }
+}
