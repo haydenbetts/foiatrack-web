@@ -16,23 +16,28 @@ async function sign(email: string) {
 
 export async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
   const session = await getServerSession(authOptions);
-  const email = (session?.user?.email as string) || "demo@foiatrack.app"; // DEV fallback
+  const email = (session?.user?.email as string) || "demo@foiatrack.app"; // dev fallback
   const token = await sign(email);
 
   const url = `${API}/${params.path.join("/")}`;
   const init: RequestInit = {
     method: req.method,
-    headers: { "content-type": req.headers.get("content-type") || "", "authorization": `Bearer ${token}` }
+    headers: {
+      "content-type": req.headers.get("content-type") || "",
+      "authorization": `Bearer ${token}`
+    }
   };
 
   if (req.method !== "GET" && req.method !== "HEAD") {
-    const bodyText = await req.text();
-    init.body = bodyText;
+    init.body = await req.text();
   }
 
   const r = await fetch(url, init);
   const body = await r.text();
-  return new NextResponse(body, { status: r.status, headers: { "content-type": r.headers.get("content-type") || "application/json" }});
+  return new NextResponse(body, {
+    status: r.status,
+    headers: { "content-type": r.headers.get("content-type") || "application/json" }
+  });
 }
 
 export { handler as GET, handler as POST, handler as PUT, handler as PATCH, handler as DELETE };
