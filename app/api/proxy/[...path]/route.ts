@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "../../auth/options";
 import { SignJWT } from "jose";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
@@ -16,7 +16,7 @@ async function sign(email: string) {
 
 export async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
   const session = await getServerSession(authOptions);
-  const email = (session?.user?.email as string) || "demo@foiatrack.app"; // dev fallback
+  const email = (session?.user?.email as string) || "demo@foiatrack.app";
   const token = await sign(email);
 
   const url = `${API}/${params.path.join("/")}`;
