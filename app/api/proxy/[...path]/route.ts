@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/options";
 import { SignJWT } from "jose";
 
+// Use the service URL (Docker) or env you set
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
 async function sign(email: string) {
@@ -14,7 +15,9 @@ async function sign(email: string) {
     .sign(secret);
 }
 
-async function proxyHandler(req: NextRequest, { params }: { params: { path: string[] } }) {
+type Ctx = { params: { path: string[] } };
+
+async function handle(req: Request, { params }: Ctx): Promise<Response> {
   const session = await getServerSession(authOptions);
   const email = (session?.user?.email as string) || "demo@foiatrack.app";
   const token = await sign(email);
@@ -23,7 +26,7 @@ async function proxyHandler(req: NextRequest, { params }: { params: { path: stri
   const init: RequestInit = {
     method: req.method,
     headers: {
-      "content-type": req.headers.get("content-type") || "",
+      "content-type": req.headers.get("content-type") ?? "",
       "authorization": `Bearer ${token}`
     }
   };
@@ -36,8 +39,12 @@ async function proxyHandler(req: NextRequest, { params }: { params: { path: stri
   const body = await r.text();
   return new NextResponse(body, {
     status: r.status,
-    headers: { "content-type": r.headers.get("content-type") || "application/json" }
+    headers: { "content-type": r.headers.get("content-type") ?? "application/json" }
   });
 }
 
-export { proxyHandler as GET, proxyHandler as POST, proxyHandler as PUT, proxyHandler as PATCH, proxyHandler as DELETE };
+export async function GET(req: Request, ctx: Ctx) { return handle(req, ctx); }
+export async function POST(req: Request, ctx: Ctx) { return handle(req, ctx); }
+export async function PUT(req: Request, ctx: Ctx) { return handle(req, ctx); }
+export async function PATCH(req: Request, ctx: Ctx) { return handle(req, ctx); }
+export async function DELETE(req: Request, ctx: Ctx) { return handle(req, ctx); }
