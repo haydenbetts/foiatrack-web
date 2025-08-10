@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/options";
 import { SignJWT } from "jose";
@@ -14,7 +14,17 @@ async function sign(email: string) {
     .sign(secret);
 }
 
-async function forward(req: Request, segments: string[]) {
+/** Extract the catch-all tail after /api/proxy/ from the request URL */
+function extractSegments(req: NextRequest): string[] {
+  const pathname = req.nextUrl?.pathname ?? new URL(req.url).pathname;
+  const marker = "/api/proxy/";
+  const i = pathname.indexOf(marker);
+  const tail = i >= 0 ? pathname.slice(i + marker.length) : "";
+  return tail ? tail.split("/").map(decodeURIComponent) : [];
+}
+
+async function forward(req: NextRequest): Promise<Response> {
+  const segments = extractSegments(req);
   const session = await getServerSession(authOptions);
   const email = (session?.user?.email as string) || "demo@foiatrack.app";
   const token = await sign(email);
@@ -25,8 +35,11 @@ async function forward(req: Request, segments: string[]) {
     headers: {
       "content-type": req.headers.get("content-type") ?? "",
       "authorization": `Bearer ${token}`
-    }
+    },
+    // Next 15 requires explicit cache for dynamic fetches unless you set elsewhere
+    cache: "no-store"
   };
+
   if (req.method !== "GET" && req.method !== "HEAD") {
     init.body = await req.text();
   }
@@ -39,19 +52,8 @@ async function forward(req: Request, segments: string[]) {
   });
 }
 
-// IMPORTANT: inline the ctx type literal; do NOT use a named alias
-export async function GET(req: Request, { params }: { params: { path: string[] } }) {
-  return forward(req, params?.path ?? []);
-}
-export async function POST(req: Request, { params }: { params: { path: string[] } }) {
-  return forward(req, params?.path ?? []);
-}
-export async function PUT(req: Request, { params }: { params: { path: string[] } }) {
-  return forward(req, params?.path ?? []);
-}
-export async function PATCH(req: Request, { params }: { params: { path: string[] } }) {
-  return forward(req, params?.path ?? []);
-}
-export async function DELETE(req: Request, { params }: { params: { path: string[] } }) {
-  return forward(req, params?.path ?? []);
-}
+export async function GET(req: NextRequest) { return forward(req); }
+export async function POST(req: NextRequest) { return forward(req); }
+export async function PUT(req: NextRequest) { return forward(req); }
+export async function PATCH(req: NextRequest) { return forward(req); }
+export async function DELETE(req: NextRequest) { return forward(req); }
