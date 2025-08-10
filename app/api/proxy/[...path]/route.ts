@@ -14,7 +14,7 @@ async function sign(email: string) {
     .sign(secret);
 }
 
-export async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
+async function proxyHandler(req: NextRequest, { params }: { params: { path: string[] } }) {
   const session = await getServerSession(authOptions);
   const email = (session?.user?.email as string) || "demo@foiatrack.app";
   const token = await sign(email);
@@ -40,4 +40,4 @@ export async function handler(req: NextRequest, { params }: { params: { path: st
   });
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as PATCH, handler as DELETE };
+export { proxyHandler as GET, proxyHandler as POST, proxyHandler as PUT, proxyHandler as PATCH, proxyHandler as DELETE };
