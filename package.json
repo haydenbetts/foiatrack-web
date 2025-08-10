@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "jose": "^6.0.12",
+    "next-auth": "^4.24.11"
+  }
+}
